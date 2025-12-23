@@ -13,13 +13,22 @@ export const auth = betterAuth({
             verification: schema.verifications,
         }
     }),
-    // PERBAIKAN 1: Nama property yang benar
-    emailPassword: {
-        enabled: true
+
+    // ✅ NAMA PROPERTY YANG BENAR
+    emailAndPassword: {
+        enabled: true,
+        requireEmailVerification: false
     },
-    // PERBAIKAN 2: Tambahkan domain Vercel Anda agar session bisa terbaca
+
     trustedOrigins: [
         "http://localhost:5173",
         "https://portfolio-iota-pink-35.vercel.app"
-    ]
+    ],
+
+    session: {
+        cookie: {
+            secure: true,
+            sameSite: "none"
+        }
+    }
 });
