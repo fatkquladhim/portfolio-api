@@ -17,26 +17,65 @@ import path from 'path';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3001;
 
-// Middleware
+/* =========================
+   GLOBAL ERROR HANDLER
+========================= */
+process.on("unhandledRejection", err => {
+    console.error("❌ Unhandled Rejection:", err);
+});
+
+process.on("uncaughtException", err => {
+    console.error("❌ Uncaught Exception:", err);
+});
+
+/* =========================
+   MIDDLEWARE
+========================= */
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        const allowedOrigins = [
+            process.env.FRONTEND_URL,
+            'http://localhost:5173'
+        ];
+
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
+
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Serve static files from uploads directory
+/* =========================
+   STATIC FILES
+========================= */
 app.use('/uploads', express.static('uploads'));
 
-// Routes
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get('/health', (req, res) => {
-    res.json({ success: true, timestamp: new Date().toISOString() });
+    res.status(200).json({
+        success: true,
+        status: 'ok',
+        timestamp: new Date().toISOString()
+    });
 });
 
+/* =========================
+   AUTH ROUTES
+========================= */
 app.all("/api/auth/*", toNodeHandler(auth));
 
+/* =========================
+   API ROUTES
+========================= */
 app.use('/api/projects', projectRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -45,14 +84,32 @@ app.use('/api/tech-stacks', techStackRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/chat', chatRoutes);
 
+/* =========================
+   404 HANDLER
+========================= */
+app.use((req, res) => {
+    return errorResponse(res, 'Route not found', 404);
+});
 
-// Error handling
+/* =========================
+   ERROR HANDLER
+========================= */
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    return errorResponse(res, 'Something went wrong!', 500);
+    return errorResponse(res, 'Internal Server Error', 500);
 });
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
+/* =========================
+   SERVER START
+========================= */
+app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
 
+/* =========================
+   GRACEFUL SHUTDOWN
+========================= */
+process.on("SIGTERM", () => {
+    console.log("🛑 SIGTERM received, shutting down gracefully");
+    process.exit(0);
+});
