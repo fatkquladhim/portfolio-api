@@ -11,10 +11,10 @@
     },
     "dependencies": {
         "@openrouter/sdk": "^0.3.10",
-        "better-auth": "latest",
+        "better-auth": "^1.4.6",
         "cors": "^2.8.5",
         "dotenv": "^16.4.7",
-        "drizzle-orm": "^0.38.2",
+        "drizzle-orm": "^0.45.1",
         "express": "^4.21.2",
         "morgan": "^1.10.0",
         "multer": "^2.0.2",
