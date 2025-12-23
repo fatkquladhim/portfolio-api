@@ -37,17 +37,32 @@ app.use(cors({
     origin: (origin, callback) => {
         const allowedOrigins = [
             process.env.FRONTEND_URL,
-            'http://localhost:5173'
+            "http://localhost:5173",
+            "https://portfolio-iota-pink-35.vercel.app"
         ];
 
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+        // ✅ Izinkan request tanpa origin
+        // (health check, server-to-server, preflight, better-auth internal)
+        if (!origin) {
+            return callback(null, true);
         }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // ❌ JANGAN throw error
+        // cukup tolak secara halus
+        return callback(null, false);
     },
-    credentials: true
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// ✅ WAJIB: handle preflight
+app.options("*", cors());
+
 
 app.use(express.json());
 app.use(morgan('dev'));
